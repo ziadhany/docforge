@@ -1,0 +1,7 @@
+*.pyc
+*.db
+/.cache/
+/.python-version
+/.venv/
+/.idea/
+/.*cache/
