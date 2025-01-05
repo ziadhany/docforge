@@ -10,10 +10,14 @@ from rest_framework.generics import ListAPIView, RetrieveDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from docengine.serializer import (ConvertPdfToImageSerializer,
-                                  DocumentSerializer, ImageSerializer,
-                                  PdfSerializer,
-                                  RotateImageSerializer, DocumentListSerializer)
+from docengine.serializer import (
+    ConvertPdfToImageSerializer,
+    DocumentListSerializer,
+    DocumentSerializer,
+    ImageSerializer,
+    PdfSerializer,
+    RotateImageSerializer,
+)
 
 from .models import Document
 
@@ -169,5 +173,7 @@ class ConvertPdfToImageView(APIView):
             )
             new_images.append(new_document)
 
-        return Response({"images": ImageSerializer(new_images, many=True).data},
-                        status=status.HTTP_201_CREATED)
+        return Response(
+            {"images": ImageSerializer(new_images, many=True).data},
+            status=status.HTTP_201_CREATED,
+        )

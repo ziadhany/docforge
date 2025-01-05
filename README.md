@@ -56,19 +56,32 @@ pip install -r requirements.txt
 
 Create a `.env` file in the root of the project to store environment variables. Use the following content as an example:
 ```bash
-DOCFORGE_DB_ENGINE="django.db.backends.postgresql"  
-DOCFORGE_DB_HOST="localhost"  
-DOCFORGE_DB_NAME="docforge"  
-DOCFORGE_DB_USER="docforge"  
-DOCFORGE_DB_PASSWORD="docforge"  
+SECRET_KEY="django-insecure-0eg6$5izq(benpjw1oj)@8v=91!gp8$w%xn-veplzbfp^dp2n&"
+DOCFORGE_DB_ENGINE="django.db.backends.postgresql"
+DOCFORGE_DB_HOST="localhost"
+DOCFORGE_DB_NAME="docforge"
+DOCFORGE_DB_USER="docforge"
+DOCFORGE_DB_PASSWORD="docforge"
 DOCFORGE_DB_PORT="5432"
+DOCFORGE_MEDIA_ROOT="media/"
+DOCFORGE_DEBUG=True
+DOCFORGE_ALLOWED_HOSTS="127.0.0.1,localhost"
 ```
+
+### Run Tests
+
+To execute the tests for the project, use the following command:
 
 ```bash
 make test 
-make run
 ```
 
+### Run the Application
+
+To start the Django application, use the following command:
+```bash
+make run
+```
 Once complete, the **DocForge** app and API will be available at **[http://127.0.0.1:8000](http://127.0.0.1:8000)**.
 
 

@@ -1,4 +1,4 @@
-version: "3"
+version: "3.8"
 
 services:
   db:
@@ -21,6 +21,7 @@ services:
     volumes:
       - /etc/docforge/:/etc/docforge/
       - static:/var/docforge/static/
+      - media:/var/docforge/media/
     depends_on:
       - db
 
@@ -34,7 +35,7 @@ services:
     volumes:
       - ./etc/nginx/conf.d/:/etc/nginx/conf.d/
       - static:/var/docforge/static/
-      - /var/www/html:/var/www/html
+      - media:/var/docforge/media/
     depends_on:
       - docforge
 
@@ -42,3 +43,4 @@ services:
 volumes:
   db_data:
   static:
+  media:

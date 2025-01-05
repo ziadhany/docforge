@@ -12,6 +12,19 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
+import environ
+
+PROJECT_DIR = Path(__file__).resolve().parent
+ROOT_DIR = PROJECT_DIR.parent
+
+# Environment
+ENV_FILE = "/etc/docforge/.env"
+if not Path(ENV_FILE).exists():
+    ENV_FILE = ROOT_DIR / ".env"
+
+env = environ.Env()
+environ.Env.read_env(str(ENV_FILE))
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,13 +33,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-0eg6$5izq(benpjw1oj)@8v=91!gp8$w%xn-veplzbfp^dp2n&"
+SECRET_KEY = env.str("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DOCFORGE_DEBUG", default=False)
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = env.list("DOCFORGE_ALLOWED_HOSTS", default=["127.0.0.1"])
 
 # Application definition
 
@@ -77,11 +89,14 @@ WSGI_APPLICATION = "docforge.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": env.str("DOCFORGE_DB_ENGINE", "django.db.backends.postgresql"),
+        "HOST": env.str("DOCFORGE_DB_HOST", "localhost"),
+        "NAME": env.str("DOCFORGE_DB_NAME", "vulnerablecode"),
+        "USER": env.str("DOCFORGE_DB_USER", "vulnerablecode"),
+        "PASSWORD": env.str("DOCFORGE_DB_PASSWORD", "vulnerablecode"),
+        "PORT": env.str("DOCFORGE_DB_PORT", "5432"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -118,6 +133,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = env.str("DOCFORGE_STATIC_ROOT", "./")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -130,5 +146,5 @@ REST_FRAMEWORK = {
     ]
 }
 
-MEDIA_ROOT = "media/"
+MEDIA_ROOT = env.str("DOCFORGE_MEDIA_ROOT", default="/var/docforge/media/")
 MEDIA_URL = "media/"

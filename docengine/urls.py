@@ -17,9 +17,15 @@ Including another URLconf
 
 from django.urls import path
 
-from docengine.views import (ConvertPdfToImageView, DocumentUploadView,
-                             ImageDetailView, ImageListView, PdfDetailView,
-                             PdfListView, RotateImageView)
+from docengine.views import (
+    ConvertPdfToImageView,
+    DocumentUploadView,
+    ImageDetailView,
+    ImageListView,
+    PdfDetailView,
+    PdfListView,
+    RotateImageView,
+)
 
 urlpatterns = [
     path("upload/", DocumentUploadView.as_view(), name="upload"),

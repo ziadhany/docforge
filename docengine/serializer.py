@@ -110,6 +110,7 @@ class PdfSerializer(serializers.ModelSerializer):
     """
     Serializer for representing PDF documents and their metadata.
     """
+
     location = serializers.CharField(source="file")
     num_pages = serializers.IntegerField(read_only=True)
     page_dimensions = serializers.ListField(
@@ -161,4 +162,5 @@ class ConvertPdfToImageSerializer(serializers.Serializer):
     """
     Serializer to validate and process the data for converting a PDF document to an image.
     """
+
     id = serializers.UUIDField(required=True)
