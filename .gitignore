@@ -2,6 +2,6 @@
 *.db
 /.cache/
 /.python-version
-/.venv/
+/venv/
 /.idea/
 /.*cache/

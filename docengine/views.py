@@ -1,6 +1,8 @@
+import uuid
 from io import BytesIO
 
 from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import SimpleUploadedFile
 from pdf2image import convert_from_path
 from PIL import Image
 from rest_framework import status
@@ -8,21 +10,25 @@ from rest_framework.generics import ListAPIView, RetrieveDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from docengine.serializer import (DocumentSerializer, ImageSerializer,
-                                  MultipleDocumentUploadSerializer,
-                                  PdfSerializer)
+from docengine.serializer import (ConvertPdfToImageSerializer,
+                                  DocumentSerializer, ImageSerializer,
+                                  PdfSerializer,
+                                  RotateImageSerializer, DocumentListSerializer)
 
 from .models import Document
 
 
 class DocumentUploadView(APIView):
-    """ """
+    """
+    API endpoint for uploading multiple documents.
+    """
 
     def post(self, request, *args, **kwargs):
-        data = request.data
-        serializer = MultipleDocumentUploadSerializer(data=data, many=True)
+        serializer = DocumentListSerializer(data=request.data, many=True)
         if serializer.is_valid():
             documents = serializer.save()
+
+            Document.objects.bulk_create(documents)
             return Response(
                 {
                     "message": "Documents uploaded successfully",
@@ -32,7 +38,7 @@ class DocumentUploadView(APIView):
             )
         else:
             return Response(
-                {"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+                {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
             )
 
 
@@ -55,7 +61,9 @@ class PdfListView(ListAPIView):
 
 
 class ImageDetailView(RetrieveDestroyAPIView):
-    """ """
+    """
+    API view to retrieve or delete an image document.
+    """
 
     queryset = Document.objects.filter(media_type="image")
     serializer_class = ImageSerializer
@@ -63,7 +71,9 @@ class ImageDetailView(RetrieveDestroyAPIView):
 
 
 class PdfDetailView(RetrieveDestroyAPIView):
-    """ """
+    """
+    API view to retrieve or delete an pdf document.
+    """
 
     queryset = Document.objects.filter(media_type="pdf")
     serializer_class = PdfSerializer
@@ -71,95 +81,93 @@ class PdfDetailView(RetrieveDestroyAPIView):
 
 
 class RotateImageView(APIView):
-    """
-    Accepts an image ID and a rotation angle, rotates the image,
-    and returns the rotated image.
-    """
+    def post(self, request):
+        """
+        Accepts an image ID and a rotation angle, rotates the image,
+        and returns the rotated image.
+        """
+        serializer = RotateImageSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request, id):
-        # Fetch the document using the provided ID
+        document_id = serializer.validated_data["id"]
+
         try:
-            document = Document.objects.get(id=id, media_type="image")
+            document = Document.objects.get(id=document_id, media_type="image")
         except Document.DoesNotExist:
             return Response(
-                {"detail": "Image not found."}, status=status.HTTP_404_NOT_FOUND
+                {"error": "Image not found."}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Get the rotation angle from the request data
-        rotation_angle = request.data.get("rotation_angle", None)
-        if rotation_angle is None:
-            return Response(
-                {"detail": "Rotation angle is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        rotation_angle = serializer.validated_data["rotation_angle"]
 
         try:
-            rotation_angle = float(rotation_angle)
-        except ValueError:
-            return Response(
-                {"detail": "Invalid rotation angle."},
-                status=status.HTTP_400_BAD_REQUEST,
+            image = Image.open(document.file)
+            rotated_image = image.rotate(rotation_angle, expand=True)
+            original_format = image.format
+
+            image_io = BytesIO()
+            rotated_image.save(image_io, format=original_format)
+            image_io.seek(0)
+
+            rotated_image_name = f"{uuid.uuid4()}.{original_format.lower()}"
+            rotated_image_file = ContentFile(image_io.read(), name=rotated_image_name)
+
+            rotated_image = Document.objects.create(
+                file=rotated_image_file,
+                media_type="image",
             )
 
-        image = Image.open(document.file)
-        rotated_image = image.rotate(rotation_angle, expand=True)
-        image_io = BytesIO()
-        rotated_image.save(image_io, format="JPEG")
-        image_io.seek(0)
+            document_serializer = ImageSerializer(rotated_image)
+            return Response(document_serializer.data, status=status.HTTP_201_CREATED)
 
-        rotated_image_name = f"rotated_{document.id}.jpg"
-
-        rotated_image_file = ContentFile(image_io.read(), name=rotated_image_name)
-
-        rotated_document = Document.objects.create(
-            file=rotated_image_file,
-            media_type="image",
-        )
-
-        serializer = DocumentSerializer(rotated_document)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(
+                {"errors": f"An error occurred while rotating the image: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class ConvertPdfToImageView(APIView):
-    """
-    Accepts a PDF ID, converts the first page of the PDF to an image, and returns the image.
-    """
-
     def post(self, request):
-        pdf_id = request.data.get("pdf_id")
+        """
+        Accepts a PDF ID, converts the first page of the PDF to an image, and returns the image.
+        """
+        serializer = ConvertPdfToImageSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        if not pdf_id:
-            return Response(
-                {"detail": "PDF ID is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
-
+        document_id = serializer.validated_data["id"]
         try:
-            document = Document.objects.get(id=pdf_id, media_type="pdf")
+            document = Document.objects.get(id=document_id, media_type="pdf")
         except Document.DoesNotExist:
             return Response(
-                {"detail": "PDF not found."}, status=status.HTTP_404_NOT_FOUND
+                {"error": "PDF not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
-        pdf_path = document.file.path
-
         try:
-            images = convert_from_path(pdf_path, first_page=1, last_page=1, dpi=300)
+            images = convert_from_path(document.file.path, fmt="jpeg")
         except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        image = images[0]
-        image_io = BytesIO()
-        image.save(image_io, format="JPEG")
-        image_io.seek(0)
+        new_images = []
+        for image in images:
+            image_io = BytesIO()
+            original_format = image.format
+            image.save(image_io, format=original_format)
+            image_io.seek(0)
 
-        image_name = f"pdf_page_{document.id}.jpg"
-        image_file = ContentFile(image_io.read(), name=image_name)
+            image_file = SimpleUploadedFile(
+                name=f"{uuid.uuid4()}.jpg",
+                content=image_io.read(),
+                content_type="image/jpeg",
+            )
 
-        new_document = Document.objects.create(
-            file=image_file,
-            media_type="image",
-        )
+            new_document = Document.objects.create(
+                file=image_file,
+                media_type="image",
+            )
+            new_images.append(new_document)
 
-        return Response(
-            {"image_url": new_document.file.url}, status=status.HTTP_201_CREATED
-        )
+        return Response({"images": ImageSerializer(new_images, many=True).data},
+                        status=status.HTTP_201_CREATED)

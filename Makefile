@@ -1,6 +1,7 @@
 PYTHON_EXE?=python3
 VENV=venv
 ACTIVATE?=. ${VENV}/bin/activate;
+MANAGE=${VENV}/bin/python manage.py
 
 isort:
 	@echo "-> Apply isort changes to ensure proper imports ordering"
@@ -24,4 +25,7 @@ test:
 	@echo "-> Run the test suite"
 	${VENV}/bin/pytest -vvs
 
-.PHONY: check valid black isort test
+run:
+	${MANAGE} runserver 8000 --insecure
+
+.PHONY: check valid black isort test run

@@ -17,3 +17,9 @@ Requirements:
 5. Implement proper error handling and validation for the API endpoints.
 6. Use Git for version control and commit your code regularly with meaningful commit messages.
 7. Dockerize the Django project for easy deployment and testing.
+
+Extra Credit:
+You’ll gain extra credit for doing some or all of the following:
+1. Add tests to the project using pytest.
+2. Deploy the project on any free hosting, like pythonanywhere.
+3. Provide a postman collection with examples of how to use the API.

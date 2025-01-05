@@ -4,7 +4,7 @@ from pathlib import Path
 import filetype
 from drf_extra_fields.fields import Base64FileField
 from PIL import Image as PilImage
-from PyPDF2 import  PdfReader
+from PyPDF2 import PdfReader
 from rest_framework import serializers
 
 from .models import Document
@@ -21,7 +21,7 @@ class Base64FileFieldSerializer(Base64FileField):
         "application/pdf": "pdf",
     }
 
-    ALLOWED_TYPES = ["pdf", "jpg", "jpeg", "png"]
+    ALLOWED_TYPES = ["pdf", "jpg", "jpeg", "png", "gif", "webp"]
 
     def get_file_extension(self, filename, decoded_file):
         extension = filetype.guess_extension(decoded_file)
@@ -43,9 +43,9 @@ class DocumentSerializer(serializers.ModelSerializer):
         fields = ["id", "media_type", "file", "uploaded_at"]
 
 
-class DocumentListSerializer(serializers.ListSerializer):
+class DocumentListSerializer(serializers.Serializer):
     """
-    A custom list serializer for handling multiple document uploads.
+    Serializer for handling multiple document uploads.
     """
 
     file = Base64FileFieldSerializer(required=True)
@@ -54,39 +54,27 @@ class DocumentListSerializer(serializers.ListSerializer):
         """
         Override the create method to save media_type along with files.
         """
-        documents = []
+        file = validated_data.get("file")
+        if not file:
+            raise serializers.ValidationError("Please upload a valid file.")
 
-        for item in validated_data:
-            file = item.get("file")
-            if not file:
-                raise serializers.ValidationError("Please upload a valid file.")
+        extension = Path(file.name).suffix.lower().lstrip(".")
+        if extension in ["jpg", "jpeg", "png", "gif", "webp"]:
+            media_type = "image"
+        elif extension == "pdf":
+            media_type = "pdf"
+        else:
+            raise serializers.ValidationError(f"Unsupported file type: {extension}")
 
-            extension = Path(file.name).suffix.lower().lstrip(".")
-            if extension in ["jpg", "jpeg", "png"]:
-                media_type = "image"
-            elif extension == "pdf":
-                media_type = "pdf"
-            else:
-                raise serializers.ValidationError(f"Unsupported file type: {extension}")
-
-            documents.append(Document(file=file, media_type=media_type))
-
-        instances = Document.objects.bulk_create(documents)
-        return instances
-
-
-class MultipleDocumentUploadSerializer(serializers.Serializer):
-    """
-    Serializer for handling multiple document uploads.
-    """
-
-    file = Base64FileFieldSerializer(required=True)
+        document = Document(file=file, media_type=media_type)
+        return document
 
     class Meta:
-        list_serializer_class = DocumentListSerializer
+        list_serializer_class = serializers.ListSerializer
 
 
 class ImageSerializer(serializers.ModelSerializer):
+    location = serializers.CharField(source="file")
     width = serializers.IntegerField(read_only=True)
     height = serializers.IntegerField(read_only=True)
     num_pages = serializers.IntegerField(read_only=True)
@@ -97,7 +85,7 @@ class ImageSerializer(serializers.ModelSerializer):
         model = Document
         fields = [
             "id",
-            "file",
+            "location",
             "media_type",
             "width",
             "height",
@@ -119,23 +107,22 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class PdfSerializer(serializers.ModelSerializer):
-    width = serializers.IntegerField(read_only=True)
-    height = serializers.IntegerField(read_only=True)
+    """
+    Serializer for representing PDF documents and their metadata.
+    """
+    location = serializers.CharField(source="file")
     num_pages = serializers.IntegerField(read_only=True)
-    page_width = serializers.IntegerField(read_only=True)
-    page_height = serializers.IntegerField(read_only=True)
+    page_dimensions = serializers.ListField(
+        child=serializers.DictField(), read_only=True
+    )
 
     class Meta:
         model = Document
         fields = [
             "id",
-            "file",
-            "media_type",
-            "width",
-            "height",
+            "location",
             "num_pages",
-            "page_width",
-            "page_height",
+            "page_dimensions",
             "uploaded_at",
         ]
 
@@ -147,8 +134,31 @@ class PdfSerializer(serializers.ModelSerializer):
         pdf_file = instance.file.read()
         pdf_reader = PdfReader(io.BytesIO(pdf_file))
         data["num_pages"] = len(pdf_reader.pages)
-        if len(pdf_reader.pages) > 0:
-            first_page = pdf_reader.pages[0]
-            data["page_width"] = first_page.mediabox.height
-            data["page_height"] = first_page.mediabox.width
+
+        page_dimensions = []
+        for page in pdf_reader.pages:
+            page_dimensions.append(
+                {
+                    "width": page.mediabox.width,
+                    "height": page.mediabox.height,
+                }
+            )
+
+        data["page_dimensions"] = page_dimensions
         return data
+
+
+class RotateImageSerializer(serializers.Serializer):
+    """
+    Serializer to validate and process the data for rotating an image document.
+    """
+
+    id = serializers.UUIDField(required=True)
+    rotation_angle = serializers.FloatField(required=True)
+
+
+class ConvertPdfToImageSerializer(serializers.Serializer):
+    """
+    Serializer to validate and process the data for converting a PDF document to an image.
+    """
+    id = serializers.UUIDField(required=True)
