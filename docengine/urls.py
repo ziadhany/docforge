@@ -20,10 +20,10 @@ from django.urls import path
 from docengine.views import (
     ConvertPdfToImageView,
     DocumentUploadView,
-    ImageDetailView,
     ImageListView,
-    PdfDetailView,
+    ImageRetrieveDeleteView,
     PdfListView,
+    PdfRetrieveDeleteView,
     RotateImageView,
 )
 
@@ -31,8 +31,14 @@ urlpatterns = [
     path("upload/", DocumentUploadView.as_view(), name="upload"),
     path("images/", ImageListView.as_view(), name="images-list"),
     path("pdfs/", PdfListView.as_view(), name="pdfs-list"),
-    path("images/<uuid:id>/", ImageDetailView.as_view(), name="image-details"),
-    path("pdfs/<uuid:id>/", PdfDetailView.as_view(), name="pdf-details"),
+    path(
+        "images/<uuid:id>/",
+        ImageRetrieveDeleteView.as_view(),
+        name="image-retrieve-delete",
+    ),
+    path(
+        "pdfs/<uuid:id>/", PdfRetrieveDeleteView.as_view(), name="pdf-retrieve-delete"
+    ),
     path("rotate/", RotateImageView.as_view(), name="image-rotate"),
     path(
         "convert-pdf-to-image/",

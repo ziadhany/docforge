@@ -64,7 +64,7 @@ class PdfListView(ListAPIView):
     serializer_class = DocumentSerializer
 
 
-class ImageDetailView(RetrieveDestroyAPIView):
+class ImageRetrieveDeleteView(RetrieveDestroyAPIView):
     """
     API view to retrieve or delete an image document.
     """
@@ -74,7 +74,7 @@ class ImageDetailView(RetrieveDestroyAPIView):
     lookup_field = "id"
 
 
-class PdfDetailView(RetrieveDestroyAPIView):
+class PdfRetrieveDeleteView(RetrieveDestroyAPIView):
     """
     API view to retrieve or delete an pdf document.
     """

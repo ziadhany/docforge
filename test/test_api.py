@@ -15,15 +15,14 @@ TEST_DATA_DIR = Path(__file__).parent / "test_data"
 def api_client():
     return APIClient()
 
+
 # https://github.com/pytest-dev/pytest-django/issues/1126
 @pytest.fixture(autouse=True)
 # the other fixtures come from pytest-xdist
 # if not using that plugin just hash the current test
 def media_setup(settings):
     # setup
-    settings.MEDIA_ROOT = (
-        Path(settings.BASE_DIR) / "test-media"
-    )
+    settings.MEDIA_ROOT = Path(settings.BASE_DIR) / "test-media"
 
     # make sure no old/manual stuff added affects tests
     if settings.MEDIA_ROOT.exists():
@@ -35,6 +34,7 @@ def media_setup(settings):
     # problems elsewhere
     if settings.MEDIA_ROOT.exists():
         shutil.rmtree(settings.MEDIA_ROOT)
+
 
 @pytest.fixture
 def base64_image_png():
@@ -127,11 +127,13 @@ def test_invalid_file_upload(api_client):
     response = api_client.post("/api/upload/", {"file": ""}, format="json")
     assert response.status_code == 400
 
+
 @pytest.mark.django_db
 def test_get_all_images(api_client, image_document):
     response = api_client.get("/api/images/")
     assert response.status_code == 200
     assert len(response.data) == 1
+
 
 @pytest.mark.django_db
 def test_get_all_images_empty(api_client):
@@ -139,11 +141,13 @@ def test_get_all_images_empty(api_client):
     assert response.status_code == 200
     assert len(response.data) == 0
 
+
 @pytest.mark.django_db
 def test_get_all_pdfs(api_client, pdf_document):
     response = api_client.get("/api/pdfs/")
     assert response.status_code == 200
     assert len(response.data) == 1
+
 
 @pytest.mark.django_db
 def test_get_all_pdfs_empty(api_client):

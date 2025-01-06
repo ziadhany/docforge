@@ -38,9 +38,11 @@ class DocumentSerializer(serializers.ModelSerializer):
     Serializer for images/pdfs documents.
     """
 
+    location = serializers.CharField(source="file.url")
+
     class Meta:
         model = Document
-        fields = ["id", "media_type", "file", "uploaded_at"]
+        fields = ["id", "media_type", "location", "uploaded_at"]
 
 
 class DocumentListSerializer(serializers.Serializer):
@@ -74,7 +76,7 @@ class DocumentListSerializer(serializers.Serializer):
 
 
 class ImageSerializer(serializers.ModelSerializer):
-    location = serializers.CharField(source="file")
+    location = serializers.CharField(source="file.url")
     width = serializers.IntegerField(read_only=True)
     height = serializers.IntegerField(read_only=True)
     num_pages = serializers.IntegerField(read_only=True)
@@ -111,7 +113,7 @@ class PdfSerializer(serializers.ModelSerializer):
     Serializer for representing PDF documents and their metadata.
     """
 
-    location = serializers.CharField(source="file")
+    location = serializers.CharField(source="file.url")
     num_pages = serializers.IntegerField(read_only=True)
     page_dimensions = serializers.ListField(
         child=serializers.DictField(), read_only=True
