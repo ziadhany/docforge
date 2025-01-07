@@ -92,9 +92,9 @@ DATABASES = {
     "default": {
         "ENGINE": env.str("DOCFORGE_DB_ENGINE", "django.db.backends.postgresql"),
         "HOST": env.str("DOCFORGE_DB_HOST", "localhost"),
-        "NAME": env.str("DOCFORGE_DB_NAME", "vulnerablecode"),
-        "USER": env.str("DOCFORGE_DB_USER", "vulnerablecode"),
-        "PASSWORD": env.str("DOCFORGE_DB_PASSWORD", "vulnerablecode"),
+        "NAME": env.str("DOCFORGE_DB_NAME", "docforge"),
+        "USER": env.str("DOCFORGE_DB_USER", "docforge"),
+        "PASSWORD": env.str("DOCFORGE_DB_PASSWORD", "docforge"),
         "PORT": env.str("DOCFORGE_DB_PORT", "5432"),
     }
 }

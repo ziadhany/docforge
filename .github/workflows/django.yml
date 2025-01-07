@@ -1,5 +1,10 @@
 name: Django CI
 
+env:
+  DB_NAME: docforge
+  DB_USER: docforge
+  DB_PASSWORD: docforge
+
 on:
   push:
     branches: [ "master" ]
@@ -8,6 +13,21 @@ on:
 
 jobs:
   build:
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: ${{ env.DB_NAME }}
+          POSTGRES_USER: ${{ env.DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
     runs-on: ubuntu-latest
     strategy:
@@ -32,3 +52,10 @@ jobs:
     - name: Run Tests
       run: |
         make test
+      env:
+        GH_TOKEN: 1
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5432
+        DOCFORGE_DB_NAME: ${{ env.DB_NAME }}
+        DOCFORGE_DB_USER: ${{ env.DB_USER }}
+        DOCFORGE_DB_PASSWORD: ${{ env.DB_PASSWORD }}
