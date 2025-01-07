@@ -26,8 +26,8 @@
 ## **Extra Credit**
 
 Enhance the project by implementing some or all of the following:
- - [x]  Add automated tests using **pytest** to validate functionality.
- - [ ] Deploy the application on a free hosting platform, such as **PythonAnywhere**.
+ - [x] Add automated tests using **pytest** to validate functionality.
+ - [x] Deploy the application on a free hosting platform, such as PythonAnywhere. You can access the app from **[https://ziadhany.pythonanywhere.com](https://ziadhany.pythonanywhere.com)**.
  - [X] Provide a **Postman collection** with example requests for all API endpoints.
 
 ## **Getting Started**

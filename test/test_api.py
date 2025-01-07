@@ -223,6 +223,5 @@ def test_convert_pdf_to_image(api_client, pdf_document):
     response = api_client.post(
         "/api/convert-pdf-to-image/", {"id": pdf_document.id}, format="json"
     )
-    print(response.data)
     assert response.status_code == 201
     assert len(response.data["images"]) == 2  # two pdf pages
