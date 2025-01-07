@@ -28,11 +28,11 @@
 Enhance the project by implementing some or all of the following:
  - [x]  Add automated tests using **pytest** to validate functionality.
  - [ ] Deploy the application on a free hosting platform, such as **PythonAnywhere**.
- - [ ] Provide a **Postman collection** with example requests for all API endpoints.
+ - [X] Provide a **Postman collection** with example requests for all API endpoints.
 
 ## **Getting Started**
 
-### **Run With Docker**
+### **Deploy Using Docker in a Production Environment**
 
 Ensure Docker is installed on your system. Then, execute the following commands:
 
@@ -41,6 +41,7 @@ git clone https://github.com/ziadhany/docforge.git && cd docforge
 docker compose build
 docker compose up
 ```
+Once the application is running, you can access it at http://localhost/api/.
 
 ## **Local Development Installation**
 
@@ -48,9 +49,7 @@ For Debian-based systems, follow these steps:
 ```bash
 sudo apt-get install python3-venv python3-dev postgresql libpq-dev build-essential
 git clone https://github.com/ziadhany/docforge.git && cd docforge 
-python3 -m venv venv 
-source venv/bin/activate 
-pip install -r requirements.txt 
+make dev
 ```
 ### Set Up Environment Variables
 

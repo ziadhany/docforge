@@ -25,7 +25,14 @@ test:
 	@echo "-> Run the test suite"
 	${VENV}/bin/pytest -vvs
 
+dev:
+	@echo "-> Create venv, configure and install development dependencies"
+	@${PYTHON_EXE} -m venv ${VENV}
+	@${ACTIVATE} ${PYTHON_EXE} -m pip install --upgrade pip
+	@${ACTIVATE} ${PYTHON_EXE} -m pip install -r requirements.txt
+	@echo "Development environment setup complete."
+
 run:
 	${MANAGE} runserver 8000 --insecure
 
-.PHONY: check valid black isort test run
+.PHONY: check valid black isort test run dev
