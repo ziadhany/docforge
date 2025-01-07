@@ -4,7 +4,7 @@ from pathlib import Path
 import filetype
 from drf_extra_fields.fields import Base64FileField
 from PIL import Image as PilImage
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 from rest_framework import serializers
 
 from .models import Document
