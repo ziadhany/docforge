@@ -43,7 +43,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
         
     - name: Install Dependencies
-      run: make dev
+      run: |
+       sudo apt-get update
+       sudo apt-get install -y poppler-utils
+       make dev
         
     - name: Run Format Checks
       run: |
